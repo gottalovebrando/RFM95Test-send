@@ -15,26 +15,27 @@
 //*****global variables below
 // general global variables
 boolean infoON = true; // enable things to see status of device, wastes battery if not needed (example- print data to serial and blinkLED). Does not apply to first part of setup()
-float firmwareV;
+unsigned int firmwareVMajor;
+unsigned int firmwareVMinor;
 boolean debug = true; // enable verbose debug messages to serial
 // pin to show sending of message
 #define LEDPIN 9
 
 //*******************************************for EEPROM**************************************************
 #include <EEPROM.h>
-//NOTE-EEPROM values are ints that start at 0
-const int nodeIdAddr = 0;     // starting EEPROM address of the 4 bit nodeID and its 4 bit CRC32
-//const int minRawAccAddr = 8;  // starting EEPROM address of the 2 bit minium acceleration (but 4 bytes reserved) to trigger interupt and its 4 bit CRC32
-//const int maxRawAccAddr = 16; // starting EEPROM address of the 2 bit max acceleration (but 4 bytes reserved) and its 4 bit CRC32
+// NOTE-EEPROM values are ints that start at 0
+const int nodeIdAddr = 0; // starting EEPROM address of the 4 bit nodeID and its 4 bit CRC32
+// const int minRawAccAddr = 8;  // starting EEPROM address of the 2 bit minium acceleration (but 4 bytes reserved) to trigger interupt and its 4 bit CRC32
+// const int maxRawAccAddr = 16; // starting EEPROM address of the 2 bit max acceleration (but 4 bytes reserved) and its 4 bit CRC32
 //*******************************************END EEPROM**************************************************
 
 //*******************************************for lora radio******************************************************
-//#include <SPI.h> //SPI used by lora and flash chip
+// #include <SPI.h> //SPI used by lora and flash chip
 #include <RH_RF95.h>
 #define RFM95_CS 10                      // chip select for SPI
 #define RFM95_INT 2                      // interupt pin
-unsigned long nodeID = 5;                // up to 2 million for lorawan?
-const boolean forceChangeNodeID = false; // if you want to force the IMU to write this hard coded nodeID to EEPROM and use it. Only needed if you need to change it after it has been programmed
+unsigned long nodeID = 4;                // up to 2 million for lorawan?
+const boolean forceChangeNodeID = false; // if you want to force the IMU to write the hard coded nodeID above to EEPROM. Only needed if you need to change it after it has been programmed
 float frequency = 904.0;                 // Specify the desired frequency in MHz
 // the transmit power in dB. -4 to 20 in 1 dB steps. NOTE-function itself seems to indicate a range of 2-20 dB or 0-15 dB @TODO-research
 int8_t TXpower = 20;
@@ -61,10 +62,10 @@ void writeDataWithChecksumToEEPROM(int address, unsigned long data)
 
 boolean testEEPROMchecksum(int address)
 {
-  //NOTE- for now it uses a static 4 byte value for checksum, not CRC32
-  //reads 4 bytes starting at address, then looks at the next 4 bytes for CRC32 value (@TODO)
-  //returns- true if calculated CRC32 matches the data read, false if checksum does not match
-  
+  // NOTE- for now it uses a static 4 byte value for checksum, not CRC32
+  // reads 4 bytes starting at address, then looks at the next 4 bytes for CRC32 value (@TODO)
+  // returns- true if calculated CRC32 matches the data read, false if checksum does not match
+
   unsigned long data;
   // read the data from EEPROM
   EEPROM.get(address, data); // sets 'data' to value here (also returns a refernece to data)
@@ -181,7 +182,6 @@ void fadeLED(unsigned int number)
     */
 }
 
-
 boolean setupRadio()
 {
   /*
@@ -262,7 +262,7 @@ boolean setupRadio()
     }
     Serial.print(F("Device version from register 42:"));
     Serial.println(rf95.getDeviceVersion());
-    Serial.println(F("nodeID set to:"));
+    Serial.print(F("nodeID set to:"));
     Serial.println(nodeID);
     //@TODO-consider printing other things like maxMessageLength() (http://www.airspayce.com/mikem/arduino/RadioHead/classRH__RF95.html#ab273e242758e3cc2ed2679ef795a7196)
   }
@@ -270,17 +270,11 @@ boolean setupRadio()
   return worked;
 }
 
-
 void setup()
 {
-  Serial.begin(9600);
-  Serial.println();
-  Serial.println();
-  Serial.println(F("Compiled with VScode and PlatformIO")); //@TODO-update this whenever compiling or get platformIO to do it automatically
-  Serial.println(F("and librarys:mikem/RadioHead, SPI.h"));
-  Serial.println(F("RFM9595TEST-SEND V 1.0"));
-  Serial.println(F("This program sends dummy packets to test the transmission ability of the REM95 module."));
 
+  firmwareVMajor = 1;
+  firmwareVMinor = 1;
   /*
    * Version history:
    * V1.0-initial
@@ -291,7 +285,16 @@ void setup()
    * store nodeID in EEPROM
    */
 
-  firmwareV = 1.1;
+  Serial.begin(9600);
+  Serial.println();
+  Serial.println();
+  Serial.println(F("Compiled with VScode and PlatformIO")); //@TODO-update this whenever compiling or get platformIO to do it automatically
+  Serial.println(F("and librarys:mikem/RadioHead, SPI.h"));
+  Serial.print(F("RFM9595TEST-SEND V"));
+  Serial.print(firmwareVMajor);
+  Serial.print('.');
+  Serial.println(firmwareVMinor);
+  Serial.println(F("This program sends dummy packets to test the transmission ability of the REM95 module."));
 
   // set pin(s) to output mode and do a test
   pinMode(LEDPIN, OUTPUT);
@@ -307,25 +310,9 @@ void setup()
       Serial.println("RFM95 initialization failed");
     }
     digitalWrite(LEDPIN, HIGH);
-    fadeLED(99999);
+    fadeLED(9999);
     while (1)
       ;
-  }
-
-  if (infoON)
-  {
-    Serial.println(F("RFM95 initialized."));
-    if (debug)
-    {
-      Serial.println(F("All device registers:"));
-      rf95.printRegisters();
-      Serial.println();
-    }
-    Serial.print(F("Device version from register 42:"));
-    Serial.println(rf95.getDeviceVersion());
-    Serial.println(F("nodeID set to:"));
-    Serial.println(nodeID);
-    //@TODO-consider printing other things like maxMessageLength() (http://www.airspayce.com/mikem/arduino/RadioHead/classRH__RF95.html#ab273e242758e3cc2ed2679ef795a7196)
   }
 
   // turn off the battery wasting stuff if not requested
@@ -342,16 +329,51 @@ void loop()
   static unsigned long counter = 1;
 
   long supplyV = readVcc();
-  char message[47]; //@TODO-make this shorter to save memory. unsigned long:4,294,967,295. long: -2,147,483,648 (approximate assume all fields are 11 chars and one for comma: 11+1+11+1+11+1+11=47)
-  //@TODO-get this to dynamically update the firmware version number
-  snprintf(message, sizeof(message) / sizeof(char), "1.0,%lu,%ld,%lu", firmwareV, nodeID, supplyV, counter); // snprintf should add the \0 at the end
+  //@TODO-is there a better way than using a garbage variable?
+  char garbage[1];
+  int lengthNeeded;                                                                                                                 // number of characters that would have been written if message had been sufficiently large, not counting the terminating null character.
+  lengthNeeded = snprintf(garbage, sizeof(garbage), "%u.%u,%lu,%ld,%lu", firmwareVMajor, firmwareVMinor, nodeID, supplyV, counter); // A terminating null character is automatically appended after the content written. https://cplusplus.com/reference/cstdio/snprintf/
+  char message[lengthNeeded * sizeof(char) + 1];                                                                                    // normally needs ~14 characters
+
+  if (debug)
+  {
+    Serial.print(F("Size of message:"));
+    Serial.println(lengthNeeded * sizeof(char) + 1);
+    Serial.print(F("Size of message--SIZEOF() EDITION WOWWW:"));
+    Serial.println(sizeof(message));
+  }
+
+  // format specifiers:%lu for unsigned long, %ld for long, %d for integers (decimal format), %f for floating-point numbers (floating-point format), %c for characters, %s for strings
+  // lengthNeeded =  snprintf(message, sizeof(message), "1.1,%lu,%ld,%lu", nodeID, supplyV, counter);
+  lengthNeeded = snprintf(message, sizeof(message), "%u.%u,%lu,%ld,%lu", firmwareVMajor, firmwareVMinor, nodeID, supplyV, counter); // A terminating null character is automatically appended after the content written. https://cplusplus.com/reference/cstdio/snprintf/
+  if (debug)
+  {
+    Serial.print(F("chars written to message (I added 1 for null char):"));
+    Serial.println(lengthNeeded + 1);
+  }
+
+  if ((lengthNeeded + 1) > (sizeof(message) / sizeof(char)))
+  {
+    // truncated message alert!
+    if (infoON)
+    {
+      Serial.println(F("WARNING-the message char array buffer is too short to contain the message. It has been truncated by snprintf."));
+    }
+    if (debug)
+    { // consider this a fatal error only when debuging since we still want it to send the message @TODO-do we want this?
+      digitalWrite(LEDPIN, HIGH);
+      fadeLED(99999);
+      while (1)
+        ;
+    }
+  }
 
   if (infoON)
   {
     Serial.println(F("Sending data:"));
     Serial.println(message);
-    //fadeLED(counter); // blink the LED a certain number of times before sending message.
-    digitalWrite(LEDPIN, HIGH);//turn on LED to indicate radio is on
+    // fadeLED(counter); // blink the LED a certain number of times before sending message.
+    digitalWrite(LEDPIN, HIGH); // turn on LED to indicate radio is on
   }
 
   rf95.send((uint8_t *)message, strlen(message));
