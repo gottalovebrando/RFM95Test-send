@@ -15,6 +15,7 @@
 //*****global variables below
 // general global variables
 boolean infoON = true; // enable things to see status of device, wastes battery if not needed (example- print data to serial and blinkLED). Does not apply to first part of setup()
+const unsigned int sensorType=1;
 unsigned int firmwareVMajor;
 unsigned int firmwareVMinor;
 boolean debug = true; // enable verbose debug messages to serial
@@ -274,11 +275,12 @@ void setup()
 {
 
   firmwareVMajor = 1;
-  firmwareVMinor = 1;
+  firmwareVMinor = 2;
   /*
    * Version history:
    * V1.0-initial
    * V1.1-added ability to read stuff from EEPROM
+   * V1.2-added firmware revision and stuff
    *
    * @TODO:
    * allow frequency set from serial
@@ -332,7 +334,7 @@ void loop()
   //@TODO-is there a better way than using a garbage variable?
   char garbage[1];
   int lengthNeeded;                                                                                                                 // number of characters that would have been written if message had been sufficiently large, not counting the terminating null character.
-  lengthNeeded = snprintf(garbage, sizeof(garbage), "%u.%u,%lu,%ld,%lu", firmwareVMajor, firmwareVMinor, nodeID, supplyV, counter); // A terminating null character is automatically appended after the content written. https://cplusplus.com/reference/cstdio/snprintf/
+  lengthNeeded = snprintf(garbage, sizeof(garbage), "%u,%u.%u,%lu,%ld,%lu", sensorType, firmwareVMajor, firmwareVMinor, nodeID, supplyV, counter); // A terminating null character is automatically appended after the content written. https://cplusplus.com/reference/cstdio/snprintf/
   char message[lengthNeeded * sizeof(char) + 1];                                                                                    // normally needs ~14 characters
 
   if (debug)
@@ -344,8 +346,7 @@ void loop()
   }
 
   // format specifiers:%lu for unsigned long, %ld for long, %d for integers (decimal format), %f for floating-point numbers (floating-point format), %c for characters, %s for strings
-  // lengthNeeded =  snprintf(message, sizeof(message), "1.1,%lu,%ld,%lu", nodeID, supplyV, counter);
-  lengthNeeded = snprintf(message, sizeof(message), "%u.%u,%lu,%ld,%lu", firmwareVMajor, firmwareVMinor, nodeID, supplyV, counter); // A terminating null character is automatically appended after the content written. https://cplusplus.com/reference/cstdio/snprintf/
+  lengthNeeded = snprintf(message, sizeof(message), "%u.%u.%u,%lu,%ld,%lu", sensorType, firmwareVMajor, firmwareVMinor, nodeID, supplyV, counter); // A terminating null character is automatically appended after the content written. https://cplusplus.com/reference/cstdio/snprintf/
   if (debug)
   {
     Serial.print(F("chars written to message (I added 1 for null char):"));
