@@ -330,10 +330,14 @@ void loop()
 {
   static unsigned long counter = 1;
 
-  long supplyV = readVcc();
-  //@TODO-is there a better way than using a garbage variable?
+
+//char * message="ACK";
+
+
+  long supplyV = readVcc();  
+//@TODO-is there a better way than using a garbage variable?
   char garbage[1];
-  int lengthNeeded;                                                                                                                 // number of characters that would have been written if message had been sufficiently large, not counting the terminating null character.
+  int lengthNeeded; // number of characters that would have been written if message had been sufficiently large, not counting the terminating null character.
   lengthNeeded = snprintf(garbage, sizeof(garbage), "%u,%u.%u,%lu,%ld,%lu", sensorType, firmwareVMajor, firmwareVMinor, nodeID, supplyV, counter); // A terminating null character is automatically appended after the content written. https://cplusplus.com/reference/cstdio/snprintf/
   char message[lengthNeeded * sizeof(char) + 1];                                                                                    // normally needs ~14 characters
 
@@ -368,6 +372,9 @@ void loop()
         ;
     }
   }
+
+
+//finish comment here to send simple message
 
   if (infoON)
   {
