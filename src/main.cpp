@@ -35,7 +35,7 @@ const int nodeIdAddr = 0; // starting EEPROM address of the 4 bit nodeID and its
 #include <RH_RF95.h>
 #define RFM95_CS 10                      // chip select for SPI
 #define RFM95_INT 2                      // interupt pin
-unsigned long nodeID = 4;                // up to 2 million for lorawan?
+unsigned long nodeID = 5;                // up to 2 million for lorawan?
 const boolean forceChangeNodeID = false; // if you want to force the IMU to write the hard coded nodeID above to EEPROM. Only needed if you need to change it after it has been programmed
 float frequency = 904.0;                 // Specify the desired frequency in MHz
 // the transmit power in dB. -4 to 20 in 1 dB steps. NOTE-function itself seems to indicate a range of 2-20 dB or 0-15 dB @TODO-research
@@ -392,7 +392,7 @@ void loop()
     Serial.println(F("Packet is either almost done sending (& will finish soon) or is already sent."));
   }
 
-  delay(4000);
+  delay(1000);
   counter++;
 
 } // end loop fcn
